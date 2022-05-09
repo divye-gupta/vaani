@@ -1,7 +1,7 @@
 # Vaani
 
 - This project was bootstrapped with ReactJS
-- Firebase is udes to provide backend and additional auth support
+- Firebase is used to provide backend and additional auth support
 - symbl.ai is used to provide processing background and AI assistance
  
 ## Our Vision 
