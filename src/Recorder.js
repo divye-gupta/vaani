@@ -1,72 +1,65 @@
-import './css/Recorder.css';
 import React from 'react';
-import axios from "axios";
+import './App.css';
+import MicRecorder from 'mic-recorder-to-mp3';
+import './css/Recorder.css'
+const Mp3Recorder = new MicRecorder({ bitRate: 128 });
 
-let gumStream = null;
-let recorder = null;
-let audioContext = null;
+class Recorder extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {
+      isRecording: false,
+      blobURL: '',
+      isBlocked: false,
+    };
+  }
 
-function RecorderJS() {
-
-    const startRecording = () => {
-        let constraints = {
-            audio: true,
-            video: false
-        }
-
-        audioContext = new window.AudioContext();
-        console.log("sample rate: " + audioContext.sampleRate);
-
-        navigator.mediaDevices
-            .getUserMedia(constraints)
-            .then(function (stream) {
-                console.log("initializing Recorder.js ...");
-
-                gumStream = stream;
-
-                let input = audioContext.createMediaStreamSource(stream);
-
-                recorder = new window.Recorder(input, {
-                    numChannels: 1
-                })
-
-                recorder.record();
-                console.log("Recording started");
-            }).catch(function (err) {
-                //enable the record button if getUserMedia() fails
-        });
-
+  start = () => {
+    if (this.state.isBlocked) {
+      console.log('Permission Denied');
+    } else {
+      Mp3Recorder
+        .start()
+        .then(() => {
+          this.setState({ isRecording: true });
+        }).catch((e) => console.error(e));
     }
+  };
 
-    const stopRecording = () => {
-        console.log("stopButton clicked");
+  stop = () => {
+    Mp3Recorder
+      .stop()
+      .getMp3()
+      .then(([buffer, blob]) => {
+        const blobURL = URL.createObjectURL(blob)
+        this.setState({ blobURL, isRecording: false });
+      }).catch((e) => console.log(e));
+  };
 
-        recorder.stop(); //stop microphone access
-        gumStream.getAudioTracks()[0].stop();
-
-        recorder.exportWAV(onStop);
-    }
-
-    const onStop = (blob) => {
-        console.log("uploading...");
-
-        let data = new FormData();
-
-        data.append('text', "this is the transcription of the audio file");
-        data.append('wavfile', blob, "recording.wav");
-
-        const config = {
-            headers: {'content-type': 'multipart/form-data'}
-        }
-        axios.post('http://localhost:3000/asr/', data, config);
-    }
-
-    return (
-        <div>
-            <button onClick={startRecording} type="button">Start</button>
-            <button onClick={stopRecording} type="button">Stop</button>
-        </div>
+  componentDidMount() {
+    navigator.getUserMedia({ audio: true },
+      () => {
+        console.log('Permission Granted');
+        this.setState({ isBlocked: false });
+      },
+      () => {
+        console.log('Permission Denied');
+        this.setState({ isBlocked: true })
+      },
     );
+  }
+
+  render(){
+    return (
+      <div className="container">
+        <header className='buttons'>
+          <button className='startbtn' onClick={this.start} disabled={this.state.isRecording}>Record</button>
+          <button className='stopbtn' onClick={this.stop} disabled={!this.state.isRecording}>Stop</button>
+          <audio src={this.state.blobURL} controls="controls" />
+        </header>
+      </div>
+    );
+  }
 }
 
-export default RecorderJS;
+export default Recorder;
