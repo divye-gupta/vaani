@@ -8,8 +8,8 @@ function App(){
   return (
     <div className="maincontainer">
       {/* <h1>hello</h1> */}
-      {/* <Inputui/> */}
-      <PostReq/>
+      <Inputui/>
+      {/* <PostReq/> */}
     </div>
   );
 }
