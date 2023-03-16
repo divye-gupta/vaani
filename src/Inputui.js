@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./css/Inputui.css";
 import Recorder from "./Recorder";
-import UploadAudio from './UploadAudio';
+// import UploadAudio from './UploadAudio';
 import logo from "./images/logo.png";
 import axios from "axios";
 
